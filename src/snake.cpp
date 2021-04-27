@@ -1,4 +1,6 @@
-
+#include <exception>
+#include <thread>
+#include <memory>
 
 // game loop
 //  frame rate
@@ -41,17 +43,26 @@
 
 #include <iostream>
 #include <iostream>
+#include <stdexcept>
 #include "conio.h"
 #include "utils.h"
 
-#define KEY_UP 65
-#define KEY_DOWN 66
-#define KEY_LEFT 68
-#define KEY_RIGHT 67
+/*
+ * c1=0 c2=0 c3=0 c1=91 c2=91 c3=65 Snake will move Left
+ * c1=0 c2=0 c3=0 c1=91 c2=91 c3=66 Snake will move Right
+ * c1=0 c2=0 c3=0 c1=91 c2=91 c3=67 Snake will move Down
+ * c1=0 c2=0 c3=0 c1=91 c2=91 c3=68 Snake will move  Snake will move
 
-//ENUM_MACRO_4(ArrowPress, Up, Down, Left, Right)
+ */
 
-enum class ArrowPress { Unknown, Up, Down, Left, Right };
+#define KEY_DOWN 65
+#define KEY_LEFT 66
+#define KEY_UP 67
+#define KEY_RIGHT 68
+
+ENUM_MACRO_4(ArrowPress, Up, Down, Left, Right)
+
+//enum class ArrowPress { Unknown, Up, Down, Left, Right };
 
 ArrowPress getArrowPress() {
     int c1 = 0;
@@ -63,51 +74,78 @@ ArrowPress getArrowPress() {
         if (c1 == 0)
         {
             c1 = getch();
-            std::cout << "c1=" << c1 << '\n';
         }
         else if (c2 == 0)
         {
             c2 = getch();
-            std::cout << "c2=" <<  c2 << '\n';
         }
         if (c1 != 27)
         {
-            return ArrowPress::Unknown;
+            std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3 << ' ';
+            return ArrowPress::UnknownArrowPress;
         }
         else if (c1 == 27 && c2 == 0)
         {
+            std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3 << ' ';
             continue;
         }
         else if (c1 == 27 && c2 != 91)
         {
-            return ArrowPress::Unknown;
+            std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3 << ' ';
+            return ArrowPress::UnknownArrowPress;
         }
         else
         {
             switch((c3=getche())) {
             case KEY_UP:
-                std::cout << std::endl << "Up" << std::endl;    //key up
+                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
                 return ArrowPress::Up;
             case KEY_DOWN:
-                std::cout << std::endl << "Down" << std::endl;  // key down
+                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
                 return ArrowPress::Down;
             case KEY_LEFT:
-                std::cout << std::endl << "Left" << std::endl;  // key left
+                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
                 return ArrowPress::Left;
             case KEY_RIGHT:
-                std::cout << std::endl << "Right" << std::endl; // key right
+                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
                 return ArrowPress::Right;
             default:
-                std::cout << std::endl << "null: " << c3 << std::endl;  // not arrow
-                return ArrowPress::Unknown;
+                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
+                throw std::out_of_range("Invalid char press");
             }
         }
     }
     return ArrowPress::Down;
 }
 
+class Snake
+{
+    /*
+    int _length;
+    int _position;
+    */
+
+public:
+    void move(ArrowPress direction_)
+    {
+        std::cout << " Snake will move " << direction_ << '\n';
+    }
+
+};
+
+void user_input_game_loop(std::shared_ptr<Snake> snake_)
+{
+    while (true)
+    {
+        ArrowPress direction = getArrowPress();
+        snake_->move(direction);
+    }
+}
+
 int main()
 {
-    getArrowPress();
-    return 0;
+    auto snake = std::make_shared<Snake>();
+    std::thread game_loop_thread(user_input_game_loop, snake);
+    game_loop_thread.join();
+
 }

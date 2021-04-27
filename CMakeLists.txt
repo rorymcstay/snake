@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package (Threads)
 
 add_executable(snake src/snake.cpp)
-target_link_libraries(snake ncurses)
+target_link_libraries(snake pthread)
 
 install(TARGETS
     snake
