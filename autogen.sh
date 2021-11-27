@@ -16,4 +16,3 @@ cmake ../  \
     -DCMAKE_INSTALL_PREFIX=$install_dir
     "$@"
 
-make install -j64

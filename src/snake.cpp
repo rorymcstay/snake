@@ -1,4 +1,5 @@
 #include <exception>
+#include <vector>
 #include <thread>
 #include <memory>
 
@@ -54,69 +55,39 @@
  * c1=0 c2=0 c3=0 c1=91 c2=91 c3=68 Snake will move  Snake will move
 
  */
-
-#define KEY_DOWN 65
-#define KEY_LEFT 66
-#define KEY_UP 67
-#define KEY_RIGHT 68
+#define KEY_UP 'A'
+#define KEY_RIGHT 'C'
+#define KEY_DOWN 'B'
+#define KEY_LEFT 'D'
 
 ENUM_MACRO_4(ArrowPress, Up, Down, Left, Right)
 
 //enum class ArrowPress { Unknown, Up, Down, Left, Right };
-
-ArrowPress getArrowPress() {
-    int c1 = 0;
-    int c2 = 0;
-    int c3 = 0;
-
-    while(c3 == 0)
-    {
-        if (c1 == 0)
-        {
-            c1 = getch();
-        }
-        else if (c2 == 0)
-        {
-            c2 = getch();
-        }
-        if (c1 != 27)
-        {
-            std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3 << ' ';
-            return ArrowPress::UnknownArrowPress;
-        }
-        else if (c1 == 27 && c2 == 0)
-        {
-            std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3 << ' ';
-            continue;
-        }
-        else if (c1 == 27 && c2 != 91)
-        {
-            std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3 << ' ';
-            return ArrowPress::UnknownArrowPress;
-        }
-        else
-        {
-            switch((c3=getche())) {
-            case KEY_UP:
-                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
-                return ArrowPress::Up;
-            case KEY_DOWN:
-                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
-                return ArrowPress::Down;
-            case KEY_LEFT:
-                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
-                return ArrowPress::Left;
-            case KEY_RIGHT:
-                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
-                return ArrowPress::Right;
-            default:
-                std::cout << "c1=" << c2 << " c2=" << c2 <<  " c3=" <<  c3;
-                throw std::out_of_range("Invalid char press");
-            }
+//
+//
+ArrowPress getArrowPress()
+{
+    char ch =  getch();
+    if (ch == '\033') { // if the first value is esc
+        getch(); // skip the [
+        switch(getch()) { // the real value
+            case KEY_UP: return ArrowPress::Up;
+            case KEY_DOWN: return ArrowPress::Down;
+            case KEY_RIGHT: return ArrowPress::Right;
+            case KEY_LEFT: return ArrowPress::Left;
         }
     }
-    return ArrowPress::Down;
+    return ArrowPress::UnknownArrowPress;
+
 }
+
+
+struct Location
+{
+    unsigned int x_cood;
+    unsigned int y_cood;
+};
+
 
 class Snake
 {
@@ -124,28 +95,82 @@ class Snake
     int _length;
     int _position;
     */
+    Location _location;
 
 public:
+    using Ptr = std::shared_ptr<Snake>;
     void move(ArrowPress direction_)
     {
-        std::cout << " Snake will move " << direction_ << '\n';
+        std::cout << "moved from x=" << _location.x_cood << " y=" << _location.y_cood;
+        switch(direction_)
+        {
+            case ArrowPress::Up: 
+            {
+                _location.y_cood++;
+                break;
+            }
+            case ArrowPress::Down: 
+            {
+                _location.y_cood--;
+                break;
+            }
+            case ArrowPress::Right:
+            {
+                _location.x_cood++;
+                break;
+            }
+            case ArrowPress::Left: 
+            {
+                _location.x_cood--;
+                break;
+            }
+            default:
+            {
+                throw std::out_of_range("Invalid direction passed to Snake::move!");
+            }
+        }
+        std::cout << " " << direction_ << " to x=" << _location.x_cood << " y=" << _location.y_cood << '\n';
     }
-
 };
 
-void user_input_game_loop(std::shared_ptr<Snake> snake_)
+
+class Grid
+{
+
+    int _size;
+    Snake::Ptr _snake;
+
+
+public:
+    Grid(int size_, Snake::Ptr snake_)
+    :   _size(size_)
+    ,   _snake(snake_)
+    {
+    }
+
+    int size()
+    {
+        return _size;
+    }
+};
+
+void user_input_game_loop(Snake::Ptr snake_)
 {
     while (true)
     {
+        std::cout << "User Input: ";
         ArrowPress direction = getArrowPress();
+
         snake_->move(direction);
     }
 }
 
+
 int main()
 {
     auto snake = std::make_shared<Snake>();
+    auto grid = std::make_shared<Grid>(100, snake);
     std::thread game_loop_thread(user_input_game_loop, snake);
     game_loop_thread.join();
-
+    return 0; 
 }
